@@ -1,8 +1,7 @@
 #!/bin/bash
 
-echo "Installing prerequisites: git..."
-read -p "Press enter to continue"
-sudo apt install --assume-yes git
+echo "Installing os prerequisites..."
+sudo apt install git python3-venv
 
 echo ""
 echo "Cloning github.com/lbarnkow/system-setup repo..."
