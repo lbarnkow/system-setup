@@ -1,0 +1,16 @@
+- name: "lookup $HOME for user {{ item }}"
+  ansible.builtin.shell: "runuser - {{ item }} -c 'echo $HOME'"
+  register: result
+  changed_when: false
+
+- name: "store $HOME for user {{ item }}"
+  set_fact: "TMP_HOME={{result.stdout}}"
+
+- name: "add bat aliases for user {{ item }}"
+  ansible.builtin.blockinfile:
+    path: "{{ TMP_HOME }}/.zshrc"
+    insertafter: '^# User configuration'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK bat aliases"
+    block: |
+      alias less="bat --paging=always"
+      alias cat="bat --paging=never"

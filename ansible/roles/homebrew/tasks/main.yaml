@@ -1,0 +1,49 @@
+- name: check for homebrew installation
+  ansible.builtin.stat:
+    path: /home/linuxbrew
+  register: result_block
+
+- when: not result_block.stat.exists
+  block:
+    - name: temporarily allow password-less sudo
+      ansible.builtin.lineinfile:
+        path: "/etc/sudoers.d/99-temp-nopasswd-for-{{ MAIN_USER_NAME }}"
+        create: true
+        line: "{{ MAIN_USER_NAME }} ALL=(ALL) NOPASSWD: ALL"
+
+    - ansible.builtin.shell: |
+        wget --output-document /tmp/install.sh https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
+        chmod +x /tmp/install.sh
+        sudo --set-home --non-interactive --user {{ MAIN_USER_NAME }} -- bash -c 'cd && /tmp/install.sh'
+        rm /tmp/install.sh        
+      register: result
+      failed_when: false
+
+    - name: remove temporary password-less sudo privileges
+      ansible.builtin.file:
+        path: "/etc/sudoers.d/99-temp-nopasswd-for-{{ MAIN_USER_NAME }}"
+        state: absent
+
+- name: "setup ~/.zshrc for homebrew for user {{ MAIN_USER_NAME }}"
+  ansible.builtin.blockinfile:
+    path: "/home/{{ MAIN_USER_NAME }}/.zshrc"
+    insertbefore: '^source .*/oh-my-zsh.sh$'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK homebrew"
+    prepend_newline: true
+    append_newline: true
+    block: |
+      eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+- name: "setup ~/.zshrc for homebrew for user root"
+  ansible.builtin.blockinfile:
+    path: "/root/.zshrc"
+    insertbefore: '^source .*/oh-my-zsh.sh$'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK homebrew"
+    prepend_newline: true
+    append_newline: true
+    block: |
+      export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin${PATH+:$PATH}";
+      [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
+      export INFOPATH="/home/linuxbrew/.linuxbrew/share/info:${INFOPATH:-}";
+
+      alias brew="echo 'do not manage brew as root!'"

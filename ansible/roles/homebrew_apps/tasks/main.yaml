@@ -1,0 +1,28 @@
+- name: gather installed homebrew apps
+  ansible.builtin.shell: |
+    runuser - {{ MAIN_USER_NAME }} -c 'zsh -i -c "brew list --installed-on-request --full-name"'
+  register: installed
+  changed_when: false
+
+- name: install homebrew apps
+  when: item not in installed.stdout_lines
+  loop:
+    - bat
+    - direnv
+    - fzf
+    - gitui
+    - k9s
+    - kubernetes-cli
+    - ripgrep
+    - starship
+  ansible.builtin.shell: |
+    runuser - {{ MAIN_USER_NAME }} -c 'zsh -i -c "brew install {{ item }}"'
+  register: result
+  retries: 3
+  delay: 3
+  until: result.rc == 0
+
+- loop:
+    - root
+    - "{{ MAIN_USER_NAME }}"
+  include_tasks: tasks.yaml
