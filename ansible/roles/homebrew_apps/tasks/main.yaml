@@ -12,6 +12,7 @@
     - fzf
     - gitui
     - k9s
+    - kubectx
     - kubernetes-cli
     - ripgrep
     - starship
