@@ -6,6 +6,10 @@
   roles:
     - role: _facts
       tags: always
+    - role: console_setup
+      tags: console_setup
+    - role: fprintd
+      tags: fprintd
     - role: zsh
       tags: zsh
     - role: homebrew
