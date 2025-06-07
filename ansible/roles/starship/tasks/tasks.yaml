@@ -1,0 +1,17 @@
+- name: "lookup $HOME for user {{ item }}"
+  ansible.builtin.shell: "runuser - {{ item }} -c 'echo $HOME'"
+  register: result
+  changed_when: false
+
+- name: "store $HOME for user {{ item }}"
+  set_fact: "TMP_HOME={{result.stdout}}"
+
+- name: ensure ~/.config/ exists
+  ansible.builtin.file:
+    path: "{{ TMP_HOME }}/.config/"
+    state: directory
+
+- name: install starship ~/.config/starship.toml
+  ansible.builtin.copy:
+    src: starship.toml
+    dest: "{{ TMP_HOME }}/.config/starship.toml"

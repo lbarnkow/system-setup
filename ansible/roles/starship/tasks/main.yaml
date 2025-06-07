@@ -1,0 +1,4 @@
+- loop:
+    - root
+    - "{{ MAIN_USER_NAME }}"
+  include_tasks: tasks.yaml
