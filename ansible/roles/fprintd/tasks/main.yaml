@@ -1,4 +1,4 @@
-- name: install fprintd
+- name: Install fprintd
   ansible.builtin.package:
     name:
       - fprintd
@@ -6,19 +6,21 @@
       - libpam-fprintd
     state: present
 
-- name: start fprintd
+- name: Start fprintd
   ansible.builtin.service:
     name: fprintd
     enabled: true
     state: started
   register: result
+  changed_when: false
 
-- name: check if pam module for fprintd is enabled
-  ansible.builtin.shell: grep --recursive 'fprintd' /etc/pam.d/
+- name: Check if pam module for fprintd is enabled
+  ansible.builtin.command: grep --recursive 'fprintd' /etc/pam.d/
   register: result
   changed_when: false
   failed_when: false
 
-- name: update pam.d configs to allow auth w/ fingerprint
+- name: Update pam.d configs to allow auth w/ fingerprint
   when: result.rc != 0
-  ansible.builtin.shell: pam-auth-update --enable fprintd
+  ansible.builtin.command: pam-auth-update --enable fprintd
+  changed_when: true

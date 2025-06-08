@@ -1,17 +1,24 @@
-- name: "lookup $HOME for user {{ item }}"
+- name: "Lookup $HOME for user {{ item }}"
   ansible.builtin.shell: "runuser - {{ item }} -c 'echo $HOME'"
   register: result
   changed_when: false
 
-- name: "store $HOME for user {{ item }}"
-  set_fact: "TMP_HOME={{result.stdout}}"
+- name: "Store $HOME for user {{ item }}"
+  ansible.builtin.set_fact:
+    tmp_home: "{{ result.stdout }}"
 
-- name: ensure ~/.config/ exists
+- name: Ensure ~/.config/ exists
   ansible.builtin.file:
-    path: "{{ TMP_HOME }}/.config/"
+    path: "{{ tmp_home }}/.config/"
     state: directory
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: u+rwX,g=rX,o=
 
-- name: install starship ~/.config/starship.toml
+- name: Install starship ~/.config/starship.toml
   ansible.builtin.copy:
     src: starship.toml
-    dest: "{{ TMP_HOME }}/.config/starship.toml"
+    dest: "{{ tmp_home }}/.config/starship.toml"
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: u+rwX,g=rX,o=

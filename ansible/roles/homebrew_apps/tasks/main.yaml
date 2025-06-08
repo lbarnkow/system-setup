@@ -1,10 +1,10 @@
-- name: gather installed homebrew apps
+- name: Gather installed homebrew apps
   ansible.builtin.shell: |
-    runuser - {{ MAIN_USER_NAME }} -c 'zsh -i -c "brew list --installed-on-request --full-name"'
+    runuser - {{ main_user_name }} -c 'zsh -i -c "brew list --installed-on-request --full-name"'
   register: installed
   changed_when: false
 
-- name: install homebrew apps
+- name: Install homebrew apps
   when: item not in installed.stdout_lines
   loop:
     - bat
@@ -17,13 +17,15 @@
     - ripgrep
     - starship
   ansible.builtin.shell: |
-    runuser - {{ MAIN_USER_NAME }} -c 'zsh -i -c "brew install {{ item }}"'
+    runuser - {{ main_user_name }} -c 'zsh -i -c "brew install {{ item }}"'
+  changed_when: true
   register: result
   retries: 3
   delay: 3
   until: result.rc == 0
 
-- loop:
+- name: Custom aliases for homebrew apps
+  loop:
     - root
-    - "{{ MAIN_USER_NAME }}"
-  include_tasks: tasks.yaml
+    - "{{ main_user_name }}"
+  ansible.builtin.include_tasks: tasks.yaml

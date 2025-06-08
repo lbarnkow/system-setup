@@ -1,6 +1,6 @@
 ---
 
-- name: main system-setup playbook
+- name: Main system-setup playbook
   hosts: all
   connection: local
   roles:
@@ -30,8 +30,7 @@
       tags: rust
 
 # TODO:
-# - vscode plugins
-# - rustup
+# - git config for commit signing
 # - update script
 # - sway shortcuts!
 # - firefox setup / addons (darkreader! adblock! keepassxc?)

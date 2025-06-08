@@ -1,11 +1,11 @@
-- name: install energy saving tools (tlp & powertop)
+- name: Install energy saving tools (tlp & powertop)
   ansible.builtin.package:
     name:
       - tlp
       - powertop
     state: present
 
-- name: start tlp.service
+- name: Start tlp.service
   ansible.builtin.service:
     name: tlp
     state: started
