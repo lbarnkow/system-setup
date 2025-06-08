@@ -3,6 +3,7 @@
 
 ### Ansible ###
 *.retry
+.ansible/
 
 # End of https://www.toptal.com/developers/gitignore/api/ansible
 
@@ -11,7 +12,6 @@
 
 ### VisualStudioCode ###
 .vscode/*
-!.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json

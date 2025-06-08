@@ -51,6 +51,9 @@
     - redhat.ansible # https://marketplace.visualstudio.com/items?itemName=redhat.ansible
     - wholroyd.jinja # https://marketplace.visualstudio.com/items?itemName=wholroyd.jinja
 
+    # yaml
+    - redhat.vscode-yaml # https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml
+
     # rust
     - rust-lang.rust-analyzer # https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer
 
