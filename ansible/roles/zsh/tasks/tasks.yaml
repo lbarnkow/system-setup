@@ -140,3 +140,10 @@
       zstyle ':omz:plugins:alias-finder' longer yes
       zstyle ':omz:plugins:alias-finder' exact no
       zstyle ':omz:plugins:alias-finder' cheaper yes
+
+- name: "add ~/.bin to PATH for user {{ item }}"
+  when: item == main_user_name
+  ansible.builtin.lineinfile:
+    path: "{{ tmp_home }}/.zshrc"
+    insertbefore: EOF
+    line: export PATH="$PATH:{{ tmp_home }}/.bin"

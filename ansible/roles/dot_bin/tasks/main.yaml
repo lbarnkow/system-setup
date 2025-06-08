@@ -1,0 +1,7 @@
+- name: Ensure ~/.bin for main user
+  ansible.builtin.file:
+    path: "/home/{{ main_user_name }}/.bin"
+    owner: "{{ main_user_name }}"
+    group: "{{ main_user_name }}"
+    mode: u=rwX,go=rX
+    state: directory

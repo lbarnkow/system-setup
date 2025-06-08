@@ -6,6 +6,8 @@
   roles:
     - role: _facts
       tags: always
+    - role: dot_bin
+      tags: dot_bin
     - role: console_setup
       tags: console_setup
     - role: fprintd
@@ -28,9 +30,10 @@
       tags: vscode
     - role: rust
       tags: rust
+    - role: ghostty
+      tags: ghostty
 
 # TODO:
 # - git config for commit signing
 # - update script
-# - sway shortcuts!
 # - firefox setup / addons (darkreader! adblock! keepassxc?)
