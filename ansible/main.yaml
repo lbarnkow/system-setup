@@ -26,6 +26,8 @@
       tags: electron
     - role: vscode
       tags: vscode
+    - role: rust
+      tags: rust
 
 # TODO:
 # - vscode plugins
