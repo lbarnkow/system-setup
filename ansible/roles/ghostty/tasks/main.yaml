@@ -31,3 +31,15 @@
     path: "/home/{{ main_user_name }}/.bin/ghostty"
     src: "/home/{{ main_user_name }}/.bin/{{ ghostty_name.stdout }}"
     state: link
+
+- name: Check for terminfo
+  ansible.builtin.stat:
+    path: /usr/share/terminfo/x/xterm-ghostty
+  register: result
+
+- name: Create ghostty terminfo
+  when: not result.stat.exists
+  ansible.builtin.copy:
+    src: xterm-ghostty
+    dest: /usr/share/terminfo/x/xterm-ghostty
+    mode: u=rw,go=r
