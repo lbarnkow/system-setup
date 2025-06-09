@@ -32,6 +32,8 @@
       tags: rust
     - role: ghostty
       tags: ghostty
+    - role: firefox
+      tags: firefox
 
 # TODO:
 # - git config for commit signing
