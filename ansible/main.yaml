@@ -34,6 +34,8 @@
       tags: ghostty
     - role: firefox
       tags: firefox
+    - role: signal_app
+      tags: signal_app
 
 # TODO:
 # - git config for commit signing
