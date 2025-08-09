@@ -1,0 +1,5 @@
+- name: Starhip customization
+  loop:
+    - root
+    - "{{ main_user_name }}"
+  ansible.builtin.include_tasks: tasks.yaml

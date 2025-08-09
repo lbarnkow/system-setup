@@ -1,0 +1,76 @@
+- name: Install prerequisites
+  ansible.builtin.package:
+    name:
+      - wget
+      - gpg
+      - apt-transport-https
+    state: present
+
+- name: Check for vscode apt source
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/vscode.list
+  register: result
+
+- name: Vscode Installation block
+  when: not result.stat.exists
+  block:
+    - name: Install vscode apt repository
+      # noqa: command-instead-of-module - wget instead of get_url-task
+      ansible.builtin.shell: |
+        set -o pipefail
+        wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /tmp/packages.microsoft.gpg
+        install -D -o root -g root -m 644 /tmp/packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
+        echo \
+          "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" \
+          | sudo tee /etc/apt/sources.list.d/vscode.list \
+          > /dev/null
+        rm -f /tmp/packages.microsoft.gpg
+      args:
+        executable: /bin/bash
+      changed_when: true
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install vscode
+      ansible.builtin.package:
+        name: code
+        state: present
+
+- name: List currently installed vscode extensions
+  ansible.builtin.command: runuser - {{ main_user_name }} -c 'code --list-extensions'
+  register: result
+  changed_when: false
+
+- name: Install vscode extensions
+  loop:
+    # python (and friends)
+    - ms-python.python # https://marketplace.visualstudio.com/items?itemName=ms-python.python
+    - ms-python.isort # https://marketplace.visualstudio.com/items?itemName=ms-python.isort
+    - redhat.ansible # https://marketplace.visualstudio.com/items?itemName=redhat.ansible
+    - wholroyd.jinja # https://marketplace.visualstudio.com/items?itemName=wholroyd.jinja
+
+    # yaml
+    - redhat.vscode-yaml # https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml
+
+    # rust
+    - rust-lang.rust-analyzer # https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer
+
+    # markdown
+    - davidanson.vscode-markdownlint # https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint
+
+    # git
+    - eamodio.gitlens # https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens
+
+    # general highlighting enhancements / themes / icons
+    - oderwat.indent-rainbow # https://marketplace.visualstudio.com/items?itemName=oderwat.indent-rainbow
+    - pkief.material-icon-theme # https://marketplace.visualstudio.com/items?itemName=PKief.material-icon-theme
+    - vscode-icons-team.vscode-icons # https://marketplace.visualstudio.com/items?itemName=vscode-icons-team.vscode-icons
+    - shardulm94.trailing-spaces # https://marketplace.visualstudio.com/items?itemName=shardulm94.trailing-spaces
+
+    # draw.io
+    - hediet.vscode-drawio # https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio
+  when: item not in result.stdout_lines
+  ansible.builtin.command: runuser - {{ main_user_name }} -c 'code --install-extension {{ item }}'
+  changed_when: true

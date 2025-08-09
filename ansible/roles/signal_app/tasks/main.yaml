@@ -1,0 +1,30 @@
+- name: Check for signal-desktop public software signing key
+  ansible.builtin.stat:
+    path: /usr/share/keyrings/signal-desktop-keyring.gpg
+  register: result
+
+- name: Install signal-desktop public software signing key
+  when: not result.stat.exists
+  ansible.builtin.shell: |
+    set -o pipefail
+    wget -O- /tmp/keys.asc 'https://updates.signal.org/desktop/apt/keys.asc' | \
+      gpg --dearmor | tee /usr/share/keyrings/signal-desktop-keyring.gpg > /dev/null
+  changed_when: true
+  register: result
+
+- name: Add signal repository to apt sources list
+  ansible.builtin.copy:
+    src: signal.list
+    dest: /etc/apt/sources.list.d/signal.list
+    mode: u=rw,go=r
+  register: result
+
+- name: Update apt cache
+  when: result.changed # noqa: no-handler
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install signal-desktop
+  ansible.builtin.package:
+    name: signal-desktop
+    state: present

@@ -1,0 +1,51 @@
+- name: Gather installed homebrew apps
+  ansible.builtin.shell: |
+    runuser - {{ main_user_name }} -c 'zsh -i -c "brew list --installed-on-request --full-name"'
+  register: installed
+  changed_when: false
+
+- name: Install homebrew apps
+  when: item not in installed.stdout_lines
+  loop:
+    # Clone of cat(1) with syntax highlighting and Git integration
+    - bat
+
+    # Load/unload environment variables based on $PWD
+    - direnv
+
+    # Command-line fuzzy finder written in Go
+    - fzf
+
+    # Blazing fast terminal-ui for git written in rust
+    - gitui
+
+    # Kubernetes CLI To Manage Your Clusters In Style!
+    - k9s
+
+    # Tool that can switch between kubectl contexts easily and create aliases
+    - kubectx
+
+    # Kubernetes command-line interface
+    - kubernetes-cli
+
+    # Search tool like grep and The Silver Searcher
+    - ripgrep
+
+    # Feature rich terminal file transfer and explorer
+    - termscp
+
+    # Cross-shell prompt for astronauts
+    - starship
+  ansible.builtin.shell: |
+    runuser - {{ main_user_name }} -c 'zsh -i -c "brew install {{ item }}"'
+  changed_when: true
+  register: result
+  retries: 3
+  delay: 3
+  until: result.rc == 0
+
+- name: Custom aliases for homebrew apps
+  loop:
+    - root
+    - "{{ main_user_name }}"
+  ansible.builtin.include_tasks: tasks.yaml

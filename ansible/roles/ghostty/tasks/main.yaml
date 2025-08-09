@@ -1,0 +1,45 @@
+- name: Lookup latest ghostty release name
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl \
+      --silent --location\
+      https://api.github.com/repos/pkgforge-dev/ghostty-appimage/releases/latest\
+        | jq -r '.assets[] | select(.browser_download_url | match("Ghostty-.*x86_64.*AppImage$")) | .name'
+  changed_when: false
+  register: ghostty_name
+
+- name: Lookup latest ghostty release url
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl \
+      --silent --location\
+      https://api.github.com/repos/pkgforge-dev/ghostty-appimage/releases/latest\
+        | jq -r '.assets[] | select(.browser_download_url | match("Ghostty-.*x86_64.*AppImage$")) | .browser_download_url'
+  changed_when: false
+  register: ghostty_url
+
+- name: "Download {{ ghostty_name.stdout }}"
+  ansible.builtin.get_url:
+    url: "{{ ghostty_url.stdout }}"
+    dest: "/home/{{ main_user_name }}/.bin/{{ ghostty_name.stdout }}"
+    owner: "{{ main_user_name }}"
+    group: "{{ main_user_name }}"
+    mode: u=rwx,go=rx
+
+- name: Symlink ghostty
+  ansible.builtin.file:
+    path: "/home/{{ main_user_name }}/.bin/ghostty"
+    src: "/home/{{ main_user_name }}/.bin/{{ ghostty_name.stdout }}"
+    state: link
+
+- name: Check for terminfo
+  ansible.builtin.stat:
+    path: /usr/share/terminfo/x/xterm-ghostty
+  register: result
+
+- name: Create ghostty terminfo
+  when: not result.stat.exists
+  ansible.builtin.copy:
+    src: xterm-ghostty
+    dest: /usr/share/terminfo/x/xterm-ghostty
+    mode: u=rw,go=r

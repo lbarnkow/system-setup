@@ -1,0 +1,8 @@
+= policies.json
+
+== Determining the "latest" addon url:
+
+* Find the addon on Mozillas webpage and manually download the xpi.
+* unzip xpi file.
+* `jq --raw-output '..|.gecko?.id//empty' manifest.json` to extract owner id.
+* package name can be taken from the manually downloaded xpi file by removing the version and file extension.

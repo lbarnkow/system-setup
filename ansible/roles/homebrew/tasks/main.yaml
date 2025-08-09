@@ -1,0 +1,54 @@
+- name: Check for homebrew installation
+  ansible.builtin.stat:
+    path: /home/linuxbrew
+  register: result_block
+
+- name: Installation block
+  when: not result_block.stat.exists
+  block:
+    - name: Temporarily allow password-less sudo
+      ansible.builtin.lineinfile:
+        path: "/etc/sudoers.d/99-temp-nopasswd-for-{{ main_user_name }}"
+        create: true
+        line: "{{ main_user_name }} ALL=(ALL) NOPASSWD: ALL"
+        mode: u=rw,go=r
+
+    - name: Install homebrew
+      # noqa: command-instead-of-module
+      ansible.builtin.shell: |
+        wget --output-document /tmp/install.sh https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
+        chmod +x /tmp/install.sh
+        sudo --set-home --non-interactive --user {{ main_user_name }} -- bash -c 'cd && /tmp/install.sh'
+        rm /tmp/install.sh
+      register: result
+      failed_when: false
+      changed_when: true
+
+    - name: Remove temporary password-less sudo privileges
+      ansible.builtin.file:
+        path: "/etc/sudoers.d/99-temp-nopasswd-for-{{ main_user_name }}"
+        state: absent
+
+- name: "Setup ~/.zshrc for homebrew for user {{ main_user_name }}"
+  ansible.builtin.blockinfile:
+    path: "/home/{{ main_user_name }}/.zshrc"
+    insertbefore: '^source .*/oh-my-zsh.sh$'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK homebrew"
+    prepend_newline: true
+    append_newline: true
+    block: |
+      eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+- name: "Setup ~/.zshrc for homebrew for user root"
+  ansible.builtin.blockinfile:
+    path: "/root/.zshrc"
+    insertbefore: '^source .*/oh-my-zsh.sh$'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK homebrew"
+    prepend_newline: true
+    append_newline: true
+    block: |
+      export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin${PATH+:$PATH}";
+      [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
+      export INFOPATH="/home/linuxbrew/.linuxbrew/share/info:${INFOPATH:-}";
+
+      alias brew="echo 'do not manage brew as root!'"

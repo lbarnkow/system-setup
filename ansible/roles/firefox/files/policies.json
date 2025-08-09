@@ -1,0 +1,74 @@
+{
+    "policies": {
+        "BlockAboutConfig": true,
+        "AutofillCreditCardEnabled": false,
+        "DisableAccounts": true,
+        "DisableAppUpdate": true,
+        "DisableFirefoxAccounts": true,
+        "DisableFirefoxStudies": true,
+        "DisableMasterPasswordCreation": true,
+        "DisablePocket": true,
+        "DisableSetDesktopBackground": true,
+        "DisableTelemetry": true,
+        "DontCheckDefaultBrowser": true,
+        "EnableTrackingProtection": {
+            "Value": true,
+            "Locked": false,
+            "Cryptomining": true,
+            "Fingerprinting": true,
+            "EmailTracking": true,
+            "Exceptions": [
+                "https://example.com"
+            ]
+        },
+        "ExtensionSettings": {
+            "uBlock0@raymondhill.net": {
+                "installation_mode": "normal_installed",
+                "install_url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi"
+            },
+            "jid1-MnnxcxisBPnSXQ@jetpack": {
+                "installation_mode": "normal_installed",
+                "install_url": "https://addons.mozilla.org/firefox/downloads/latest/privacy-badger17/latest.xpi"
+            },
+            "addon@darkreader.org": {
+                "installation_mode": "normal_installed",
+                "install_url": "https://addons.mozilla.org/firefox/downloads/latest/darkreader/latest.xpi"
+            },
+            "{DDC359D1-844A-42a7-9AA1-88A850A938A8}": {
+                "installation_mode": "normal_installed",
+                "install_url": "https://addons.mozilla.org/firefox/downloads/latest/downthemall/latest.xpi"
+            },
+            "vimium-c@gdh1995.cn": {
+                "installation_mode": "normal_installed",
+                "install_url": "https://addons.mozilla.org/firefox/downloads/latest/vimium-c/latest.xpi"
+            },
+            "keepassxc-browser@keepassxc.org": {
+                "installation_mode": "normal_installed",
+                "install_url": "https://addons.mozilla.org/firefox/downloads/latest/keepassxc-browser/latest.xpi"
+            }
+        },
+        "FirefoxHome": {
+            "Search": true,
+            "TopSites": false,
+            "SponsoredTopSites": false,
+            "Highlights": false,
+            "Pocket": false,
+            "SponsoredPocket": false,
+            "Snippets": false,
+            "Locked": false
+        },
+        "Homepage": {
+            "URL": "http://google.com/",
+            "Locked": false,
+            "Additional": [],
+            "StartPage": "previous-session"
+        },
+        "OfferToSaveLogins": false,
+        "OfferToSaveLoginsDefault": false,
+        "OverrideFirstRunPage": "",
+        "OverridePostUpdatePage": "",
+        "PasswordManagerEnabled": false,
+        "PrimaryPassword": false,
+        "SkipTermsOfUse": true
+    }
+}

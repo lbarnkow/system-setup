@@ -1,0 +1,31 @@
+- name: Create nerd fonts target folder
+  ansible.builtin.file:
+    path: /usr/share/fonts/nerdfonts
+    state: directory
+    mode: u=rwX,go=rX
+
+- name: Gather all installed nerd fonts
+  ansible.builtin.command: find /usr/share/fonts/nerdfonts/
+  register: result_loop
+  changed_when: false
+
+- name: Install nerd fonts
+  vars:
+    fonts:
+      FiraCodeNerdFont: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip
+  loop: "{{ fonts | dict2items }}"
+  when: item.key not in result_loop.stdout
+  ansible.builtin.shell: |
+    cd /usr/share/fonts/nerdfonts
+    wget --output-document {{ item.key }}.zip '{{ item.value }}'
+    unzip {{ item.key }}.zip
+    rm {{ item.key }}.zip
+  changed_when: true
+
+- name: Update fc-cache
+  ansible.builtin.command: fc-cache --force --verbose
+  changed_when: false
+  register: result
+  retries: 3
+  delay: 3
+  until: result.rc == 0

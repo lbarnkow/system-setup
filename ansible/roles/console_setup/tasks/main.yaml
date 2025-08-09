@@ -1,0 +1,29 @@
+- name: Install prerequisites
+  ansible.builtin.package:
+    name: debconf-utils
+    state: present
+
+- name: Get current console-setup
+  ansible.builtin.shell: |
+    set -o pipefail
+    debconf-get-selections | grep 'font'
+  register: result
+  changed_when: false
+
+- name: Set vconsole to use large font
+  loop: # noqa: no-tabs - debconf just uses tabs, can't help it.
+    - "console-setup\tconsole-setup/fontface47\tselect\tTerminus"
+    - "console-setup\tconsole-setup/fontsize\tstring\t16x32"
+    - "console-setup\tconsole-setup/fontsize-fb47\tselect\t16x32 (framebuffer only)"
+    - "console-setup\tconsole-setup/fontsize-text47\tselect\t16x32 (framebuffer only)"
+  when: item not in result.stdout_lines
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo '{{ item }}' | debconf-set-selections
+  register: loop_result
+  changed_when: true
+
+- name: Apply new vconsole font settings
+  when: loop_result.changed # noqa: no-handler - kiss
+  ansible.builtin.command: dpkg-reconfigure console-setup --frontend noninteractive
+  changed_when: true

@@ -1,0 +1,5 @@
+- name: Add electron related env vars to profile.d
+  ansible.builtin.copy:
+    src: electron.sh
+    dest: /etc/profile.d/
+    mode: ugo=r

@@ -1,0 +1,8 @@
+- name: Lookup user name of main user
+  ansible.builtin.command: id --name --user 1000
+  register: result
+  changed_when: false
+
+- name: Save user name of main user
+  ansible.builtin.set_fact:
+    main_user_name: "{{ result.stdout }}"

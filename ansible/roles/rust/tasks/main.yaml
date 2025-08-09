@@ -1,0 +1,19 @@
+- name: Install build-essential
+  ansible.builtin.package:
+    name: build-essential
+    state: present
+
+- name: Check for rust tool chain installation
+  ansible.builtin.stat:
+    path: "/home/{{ main_user_name }}/.cargo/"
+  register: result
+
+- name: Install rust tool chain
+  when: not result.stat.exists
+  # noqa: command-instead-of-module - wget instead of get_url-task
+  ansible.builtin.shell: |
+    wget --output-document /tmp/install.sh https://sh.rustup.rs/
+    chmod +x /tmp/install.sh
+    runuser - {{ main_user_name }} -c '/tmp/install.sh -y' # -y: disable confirmation prompt
+    rm /tmp/install.sh
+  changed_when: true

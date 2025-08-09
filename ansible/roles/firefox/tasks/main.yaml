@@ -1,0 +1,11 @@
+- name: Create /etc/firefox/policies directory
+  ansible.builtin.file:
+    path: /etc/firefox/policies
+    state: directory
+    mode: u=rwX,go=rX
+
+- name: Install firefox /etc/firefox/policies/policies.json
+  ansible.builtin.copy:
+    src: policies.json
+    dest: /etc/firefox/policies/policies.json
+    mode: u=rw,go=r

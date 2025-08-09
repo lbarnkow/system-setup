@@ -1,0 +1,149 @@
+- name: "Lookup $HOME for user {{ item }}"
+  ansible.builtin.shell: "runuser - {{ item }} -c 'echo $HOME'"
+  register: result
+  changed_when: false
+
+- name: "Store $HOME for user {{ item }}"
+  ansible.builtin.set_fact:
+    tmp_home: "{{ result.stdout }}"
+
+- name: "Check if zsh is login shell for user {{ item }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep '{{ item }}' /etc/passwd | grep '/usr/bin/zsh'
+  register: result
+  changed_when: false
+  failed_when: false
+
+- name: "Set zsh as default login shell for user {{ item }}"
+  when: result.rc != 0
+  ansible.builtin.command: "chsh --shell /usr/bin/zsh {{ item }}"
+  changed_when: true
+
+- name: "Check for ~/.zshrc for user {{ item }}"
+  ansible.builtin.stat:
+    path: "{{ tmp_home }}/.zshrc"
+  register: result
+
+- name: "Create 'empty' .zshrc for user {{ item }}"
+  when: not result.stat.exists
+  ansible.builtin.file:
+    path: "{{ tmp_home }}/.zshrc"
+    state: touch
+    mode: u=rw,g=r,o=r
+    owner: "{{ item }}"
+    group: "{{ item }}"
+
+- name: "Check for ~/.oh-my-zsh for user {{ item }}"
+  ansible.builtin.stat:
+    path: "{{ tmp_home }}/.oh-my-zsh"
+  register: result
+
+- name: "Install ohmyzsh for user {{ item }}"
+  when: not result.stat.exists
+  # noqa: command-instead-of-module - wget instead of get_url-task
+  ansible.builtin.shell: |
+    wget --output-document /tmp/install.sh https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    chmod +x /tmp/install.sh
+    runuser - {{ item }} -c /tmp/install.sh
+    rm -rf /tmp/install.sh
+  register: result
+  changed_when: true
+
+- name: "Re-export $ZSH_CUSTOM for user {{ item }}"
+  ansible.builtin.lineinfile:
+    path: "{{ tmp_home }}/.zshrc"
+    insertafter: '^source .*/oh-my-zsh'
+    line: export ZSH_CUSTOM="$ZSH_CUSTOM"
+
+- name: "Check for custom plugin 'autoupdate' for user {{ item }}"
+  ansible.builtin.shell: runuser - {{ item }} -c "zsh -i -c 'stat \${ZSH_CUSTOM}/plugins/autoupdate'"
+  register: result
+  changed_when: false
+  failed_when: false
+
+- name: "Install custom plugin 'autoupdate' for user {{ item }}"
+  when: result.rc != 0
+  ansible.builtin.shell: |
+    runuser - {{ item }} -c "zsh -i -c 'git clone https://github.com/TamCore/autoupdate-oh-my-zsh-plugins \${ZSH_CUSTOM}/plugins/autoupdate'"
+  register: result
+  changed_when: true
+  failed_when: false
+
+- name: "Check for custom plugin 'zsh-autosuggestions' for user {{ item }}"
+  ansible.builtin.shell: runuser - {{ item }} -c "zsh -i -c 'stat \${ZSH_CUSTOM}/plugins/zsh-autosuggestions'"
+  register: result
+  changed_when: false
+  failed_when: false
+
+- name: "Install custom plugin 'zsh-autosuggestions' for user {{ item }}"
+  when: result.rc != 0
+  ansible.builtin.shell: |
+    runuser - {{ item }} -c "zsh -i -c 'git clone https://github.com/zsh-users/zsh-autosuggestions \${ZSH_CUSTOM}/plugins/zsh-autosuggestions'"
+  register: result
+  changed_when: true
+  failed_when: false
+
+- name: "Setup oh-my-zsh plugins for user {{ item }}"
+  vars:
+    plugins:
+      # custom plugins
+      - autoupdate # for auto updating of git-repositories in $ZSH_CUSTOM folder
+      - zsh-autosuggestions # Fish-like fast/unobtrusive autosuggestions for zsh
+
+      # included plugins
+      - alias-finder # searches the defined aliases and outputs any that match the command inputted
+      - aliases # list the shortcuts that are currently available
+      - ansible # adds several aliases for useful ansible commands
+      - bgnotify # background notifications for long running commands
+      - colored-man-pages # adds colors to man pages
+      - copyfile # Puts the contents of a file in your system clipboard
+      - copypath # Copies the path of given directory or file to the system clipboard
+      - direnv # creates the Direnv hook
+      - git # provides many aliases and a few useful functions
+      - gitignore # use of gitignore.io from the command line
+      - fzf # tries to find fzf, and enables its fuzzy auto-completion and key bindings
+      - k9s # adds completion support for the k9s
+      - kubectl # adds completion for kubectl, as well as some aliases for common kubectl commands
+      - podman # adds auto-completion and aliases for podman
+      - pip # adds completion for pip, the Python package manager
+      - python # adds several aliases for useful Python commands
+      - rust # adds completion for rustc as well as for rustup and cargo
+      - ssh # host completion based off of your ~/.ssh/config
+      - ssh-agent # starts automatically ssh-agent
+      - starship # Initializes starship prompt
+      - sudo # prefix your current or previous commands with sudo by pressing esc twice
+      - timer # display command's execution time in a very nonintrusive way.
+      - vscode # useful aliases to simplify the interaction between the command line and VS Code
+      - ubuntu # adds completions and aliases for Ubuntu.
+  ansible.builtin.lineinfile:
+    path: "{{ tmp_home }}/.zshrc"
+    regexp: '^plugins='
+    line: "plugins=( {{ plugins | join(' ') }} )"
+
+- name: "Configure zsh-autosuggestions plugin for user {{ item }}"
+  ansible.builtin.blockinfile:
+    path: "{{ tmp_home }}/.zshrc"
+    insertafter: '^# User configuration'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK zsh-autosuggestions"
+    block: |
+      export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+      export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=40
+
+- name: "Configure alias-finder plugin for user {{ item }}"
+  ansible.builtin.blockinfile:
+    path: "{{ tmp_home }}/.zshrc"
+    insertafter: '^# User configuration'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK alias-finder"
+    block: |
+      zstyle ':omz:plugins:alias-finder' autoload yes
+      zstyle ':omz:plugins:alias-finder' longer yes
+      zstyle ':omz:plugins:alias-finder' exact no
+      zstyle ':omz:plugins:alias-finder' cheaper yes
+
+- name: "add ~/.bin to PATH for user {{ item }}"
+  when: item == main_user_name
+  ansible.builtin.lineinfile:
+    path: "{{ tmp_home }}/.zshrc"
+    insertbefore: EOF
+    line: export PATH="$PATH:{{ tmp_home }}/.bin"

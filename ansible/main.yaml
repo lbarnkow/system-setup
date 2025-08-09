@@ -1,0 +1,42 @@
+---
+
+- name: Main system-setup playbook
+  hosts: all
+  connection: local
+  roles:
+    - role: _facts
+      tags: always
+    - role: dot_bin
+      tags: dot_bin
+    - role: console_setup
+      tags: console_setup
+    - role: fprintd
+      tags: fprintd
+    - role: energy_saving
+      tags: energy_saving
+    - role: nerd_fonts
+      tags: nerd_fonts
+    - role: zsh
+      tags: zsh
+    - role: homebrew
+      tags: homebrew
+    - role: homebrew_apps
+      tags: homebrew_apps
+    - role: starship
+      tags: starship
+    - role: electron
+      tags: electron
+    - role: vscode
+      tags: vscode
+    - role: rust
+      tags: rust
+    - role: ghostty
+      tags: ghostty
+    - role: firefox
+      tags: firefox
+    - role: signal_app
+      tags: signal_app
+
+# TODO:
+# - git config for commit signing
+# - update script
